@@ -1,15 +1,13 @@
 import math
 import numpy as np
 import matplotlib.pyplot as plt
-# from matplotlib import interactive
-
 
 def get_input_from_fusion():
   file_name = input("Enter the file name: ")
   f = open(file_name, "r")
 
   line = ""
-  start_line = 361;
+  start_line = 361
   for i in range(start_line):
     line = f.readline()
 
@@ -63,17 +61,6 @@ def get_all_scale_harmonics(all_notes, tolerance):
     curr_harms = notes[n].find_scale_haromonics(notes, tol)
     if (len(curr_harms) > 0):
       scale_harmonics[notes[n]] = curr_harms
-      """
-      for i in curr_harms:
-        scale_harmonics[notes[n]] = i
-      """
-      """
-      for i in curr_harms:
-        if (notes[n] in scale_harmonics):
-          scale_harmonics[notes[n]] += i
-        else:
-          scale_harmonics[notes[n]] = i
-      """
     curr_harms = []
 
   return scale_harmonics
@@ -95,15 +82,6 @@ def count_num(lst):
     return 1
   else:
     return 1 + count_num(lst[1:])
-
-# def make_harmonic_plot(harms):
-
-#   plotput = {}
-#   for k,v in harms.items():
-#     plotput[k.notation()] = count_num(v)
-
-#   plt.bar(list(plotput.keys()), plotput.values(), color='g')
-  
 
 class Note:
   
@@ -238,9 +216,6 @@ class Note:
 
     return harm_notes
 
-  # def __eq__(self, other):
-  #   return (self.freq == other.freq)
-
   def __str__(self):
     return self.notation()
 
@@ -254,38 +229,6 @@ rads = get_rad_column(f_data)
 
 tol_fac = 16
 tol = 1/tol_fac
-
-"""
-rads2 = [
-  0.043308840000000, 0.090855600000000, 0.151840500000000, 
-  0.153222000000000, 0.196463300000000, 0.213156500000000, 
-  0.268481500000000, 0.456993200000000, 0.539292500000000, 
-  0.669896100000000, 0.778650300000000, 0.795880900000000, 
-  0.930494400000000, 0.970244600000000, 1.025362000000000, 
-  1.274542000000000, 1.344059000000000, 1.395609000000000, 
-  1.479782000000000, 1.613111000000000, 1.649877000000000, 
-  1.730639000000000, 1.857378000000000, 2.469065000000000, 
-  2.630674000000000, 2.699105000000000, 2.756241000000000, 
-  3.087657000000000, 3.217560000000000, 3.443789000000000, 
-  3.498719000000000, 3.702996000000000, 3.818635000000000, 
-  3.975403000000000, 4.072206000000000, 4.114818000000000, 
-  4.408462000000000, 4.520879000000000, 4.790317000000000, 
-  5.127406000000000, 5.375454000000000, 5.448368000000000, 
-  5.720190000000001, 5.784008000000000, 5.883911000000000, 
-  5.987839000000000, 6.229888000000000, 6.471439000000000, 
-  6.593323000000000, 6.660578999999999
-]
-for n in range(len(rads2)):
-  rads2[n] *= 10000
-frqs = [
-  246.94, 261.6255653006, 277.18, 
-  293.66, 311.13, 329.63, 
-  349.23, 369.99, 391.99, 
-  415.30, 440.00, 466.16, 
-  493.8833012561, 520.00, 
-  523.2511306012,
-]
-"""
 
 notes = []
 for r in rads:
@@ -302,30 +245,19 @@ for r in rads:
 scale_harmonics = get_all_scale_harmonics(notes, tol)
 value_harmonics = get_all_value_harmonics(notes, tol)
 
-# print(scale_harmonics)
-# print(value_harmonics)
-
-# make_harmonic_plot(scale_harmonics)
-# make_harmonic_plot(value_harmonics)
-
-
+print(scale_harmonics)
+print(value_harmonics)
 
 plotput = {}
 for k,v in scale_harmonics.items():
   plotput[k.notation()] = count_num(v)
-
 f = plt.figure(1)
 plt.bar(list(plotput.keys()), plotput.values(), color='g')
-
-
 
 plotput = {}
 for k,v in value_harmonics.items():
   plotput[k.notation()] = count_num(v)
-
 g = plt.figure(2)
 plt.bar(list(plotput.keys()), plotput.values(), color='g')
-
-
 
 plt.show()
