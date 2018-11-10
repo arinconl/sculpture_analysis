@@ -1,6 +1,11 @@
 
 \.vscode/settings\.json
 
-evan_draft_email\.txt
+__pycache__/
 
-fusion\.out
+ss/
+
+*.out
+
+*.txt
+!requirements.txt

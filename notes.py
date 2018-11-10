@@ -1,3 +1,4 @@
+import pprint
 import math
 import numpy as np
 import matplotlib.pyplot as plt
@@ -57,31 +58,36 @@ def get_rad_column(fusion):
 
 def get_all_scale_harmonics(all_notes, tolerance):
   scale_harmonics = {}
-  for n in range(len(notes)):
-    curr_harms = notes[n].find_scale_haromonics(notes, tol)
+  for n in range(len(all_notes)):
+    curr_harms = all_notes[n].find_scale_haromonics(all_notes, tolerance)
     if (len(curr_harms) > 0):
-      scale_harmonics[notes[n]] = curr_harms
+      scale_harmonics[all_notes[n]] = curr_harms
     curr_harms = []
 
   return scale_harmonics
 
-def get_all_value_harmonics(all_notes, tolerance):
+def get_all_value_harmonics(all_notes, tolerance, mode=0):
   value_harmonics = {}
-  for n in range(len(notes)):
-    curr_harms = notes[n].find_value_harmonics(notes, tol)
+  for n in range(len(all_notes)):
+    curr_harms = all_notes[n].find_value_harmonics(all_notes, tolerance, mode)
     if (len(curr_harms) > 0):
-      value_harmonics[notes[n]] = curr_harms
+      value_harmonics[all_notes[n]] = curr_harms
     curr_harms = []
 
   return value_harmonics
 
-def count_num(lst):
-  if (lst == []):
-    return 0
-  elif (len(lst) == 1):
-    return 1
-  else:
-    return 1 + count_num(lst[1:])
+# !TODO: fix this to use value_harmonics depending on mode
+def get_all_reltv_harmonics(all_notes, tolerance):
+  reltv_harmonics = {}
+  # for n in range(len(notes)):
+  for n in range(1):
+    curr_harms = all_notes[n].find_reltv_harmonics(all_notes, tolerance)
+    if (len(curr_harms) > 0):
+      reltv_harmonics[all_notes[n]] = curr_harms
+    curr_harms = []
+  
+  return reltv_harmonics
+
 
 class Note:
   
@@ -186,7 +192,7 @@ class Note:
 
     return harm_notes
 
-  def find_value_harmonics(self, all_notes, tolerance):
+  def find_value_harmonics(self, all_notes, tolerance, mode=0):
 
     def find_base_frequency(this, that, tolerance):
       
@@ -203,6 +209,10 @@ class Note:
         intr = round(10*(that/this))
         curr = intr % 10
 
+        # Why didn't I write:
+        # v = that/this
+        # curr = round(v % 1)
+
         if ( (curr <= tolerance) or ( (10 - curr) <= tolerance) ):
           return round(intr/10)
 
@@ -211,53 +221,110 @@ class Note:
     for n in range(len(all_notes)):
       if ( self != all_notes[n] ):
         base = find_base_frequency(self.freq, all_notes[n].freq, tolerance)
+        if (not mode):
+          base = find_base_frequency(self.freq, all_notes[n].freq, tolerance)
+        else:
+          base = self.freq
         if (base):
           harm_notes.append(all_notes[n])
 
     return harm_notes
 
+  def find_reltv_harmonics(self, all_notes, tolerance):
+
+    """
+    def find_notes_harmonics(this):
+      max_f = 12600
+      collect = []
+      
+      for i in range(1, max_f // round(this.freq)):
+        collect.append(self.freq * i)
+
+      return collect
+
+    harm_notes = []
+
+    print(self.get_all())
+    print(find_notes_harmonics(self))
+
+    for n in range(len(all_notes)):
+      if ( self != all_notes[n] ):
+        print(all_notes[n].freq in list())
+        if (base):
+          harm_notes.append(all_notes[n])
+      
+    return harm_notes
+    """
+
+    harm_notes = []
+
+
+    for n in range(len(all_notes)):
+      if ( self != all_notes[n] ):
+        print("curr val: ",all_notes[n].freq/self.freq)
+
+    return harm_notes
+
   def __str__(self):
+    # TODO: lilypond export
     return self.notation()
 
   def __repr__(self):
     return self.notation()
 
+def main():
 
-# main()
-f_data = get_input_from_fusion()
-rads = get_rad_column(f_data)
+  pp = pprint.PrettyPrinter(indent=4)
 
-tol_fac = 16
-tol = 1/tol_fac
+  f_data = get_input_from_fusion()
+  rads = get_rad_column(f_data)
 
-notes = []
-for r in rads:
-  notes.append(Note(r))
+  tol_fac = 8
+  tol = 1/tol_fac
 
-# for f in frqs:
-#   notes.append(Note(f,1))
+  notes = []
+  for r in rads:
+    notes.append(Note(r))
 
-# for n in range(len(notes)):
-#   print("For mode " + str(n+1) + ":")
-#   print(notes[n].notation())
-#   print()
+  # for f in frqs:
+  #   notes.append(Note(f,1))
 
-scale_harmonics = get_all_scale_harmonics(notes, tol)
-value_harmonics = get_all_value_harmonics(notes, tol)
+  # for n in range(len(notes)):
+  #   print("For mode " + str(n+1) + ":")
+  #   print(notes[n].notation())
+  #   print()
 
-print(scale_harmonics)
-print(value_harmonics)
+  scale_harmonics = get_all_scale_harmonics(notes, tol)
+  value_harmonics = get_all_value_harmonics(notes, tol)
+  reltv_harmonics = get_all_value_harmonics(notes, tol, 1)
+  # reltv_harmonics = get_all_reltv_harmonics(notes, tol)
 
-plotput = {}
-for k,v in scale_harmonics.items():
-  plotput[k.notation()] = count_num(v)
-f = plt.figure(1)
-plt.bar(list(plotput.keys()), plotput.values(), color='g')
+  pp.pprint(scale_harmonics)
+  pp.pprint(value_harmonics)
+  pp.pprint(reltv_harmonics)
 
-plotput = {}
-for k,v in value_harmonics.items():
-  plotput[k.notation()] = count_num(v)
-g = plt.figure(2)
-plt.bar(list(plotput.keys()), plotput.values(), color='g')
+  plotput = {}
+  for k,v in scale_harmonics.items():
+    plotput[k.notation()] = len(v)
+  f = plt.figure(1)
+  plt.bar(list(plotput.keys()), plotput.values(), color='g')
 
-plt.show()
+  plotput = {}
+  for k,v in value_harmonics.items():
+    plotput[k.notation()] = len(v)
+  g = plt.figure(2)
+  plt.bar(list(plotput.keys()), plotput.values(), color='g')
+  plt.xticks(rotation='vertical')
+
+  plotput = {}
+  for k,v in reltv_harmonics.items():
+    plotput[k.notation()] = len(v)
+  h = plt.figure(3)
+  plt.bar(list(plotput.keys()), plotput.values(), color='g')
+  plt.xticks(rotation='vertical')
+
+  plt.show()
+
+
+if __name__ == '__main__':
+  main()
