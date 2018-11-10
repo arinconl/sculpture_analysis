@@ -41,6 +41,16 @@ class TestNotesObject(unittest.TestCase):
     self.assertFalse(isinstance(n, int))
     self.assertFalse(isinstance(n, float))
 
+  def test_silly(self):
+    
+    # Make a note object
+    n0 = Note(0.42)
+    n1 = Note(0.64)
+
+    # Check
+    self.assertEqual(str(n0), "Db-8 - 22 cents")
+    self.assertNotEqual(str(n1), "Db-8 - 22 cents")
+
 
 class TestFrequencies(unittest.TestCase):
 
