@@ -73,20 +73,9 @@ def get_all_value_harmonics(all_notes, tolerance, mode=0):
     if (len(curr_harms) > 0):
       value_harmonics[all_notes[n]] = curr_harms
     curr_harms = []
+    print("...")
 
   return value_harmonics
-
-def get_all_reltv_harmonics(all_notes, tolerance):
-  reltv_harmonics = {}
-  # for n in range(len(notes)):
-  for n in range(len(all_notes)):
-    curr_harms = all_notes[n].find_reltv_harmonics(all_notes, tolerance)
-    if (len(curr_harms) > 0):
-      reltv_harmonics[all_notes[n]] = curr_harms
-    curr_harms = []
-  
-  return reltv_harmonics
-
 
 class Note:
   
@@ -236,6 +225,15 @@ class Note:
         if ( (curr <= tolerance) or ( (10 - curr) <= tolerance) ):
           return round(intr/10)
 
+    def check_base_frequency(this, that, tolerance):
+
+      tolerance *= 10
+      if (tolerance > 10):
+        tolerance = 10
+      print("tolerance: " + str(tolerance))
+      print("(" + str(that) + "/" + str(this) + ") --> " + str(round(that/this,2)) + " % 1 = " + str(round(( that/this ) % 1, 2)) + " --> " + str(( that/this ) % 1 == 0) )
+      return ( that/this ) % 1 == 0
+
     harm_notes = []
 
     for n in range(len(all_notes)):
@@ -243,44 +241,10 @@ class Note:
         if (mode):
           base = find_base_frequency(self.freq, all_notes[n].freq, tolerance)
         else:
-          base = self.freq
+          base = check_base_frequency(self.freq, all_notes[n].freq, tolerance)
+        print("Current base:", base)
         if (base):
           harm_notes.append(all_notes[n])
-
-    return harm_notes
-
-  def find_reltv_harmonics(self, all_notes, tolerance):
-
-    """
-    def find_notes_harmonics(this):
-      max_f = 12600
-      collect = []
-      
-      for i in range(1, max_f // round(this.freq)):
-        collect.append(self.freq * i)
-
-      return collect
-
-    harm_notes = []
-
-    print(self.get_all())
-    print(find_notes_harmonics(self))
-
-    for n in range(len(all_notes)):
-      if ( self != all_notes[n] ):
-        print(all_notes[n].freq in list())
-        if (base):
-          harm_notes.append(all_notes[n])
-      
-    return harm_notes
-    """
-
-    harm_notes = []
-
-
-    for n in range(len(all_notes)):
-      if ( self != all_notes[n] ):
-        print("curr val: ",all_notes[n].freq/self.freq)
 
     return harm_notes
 
@@ -316,7 +280,7 @@ def main():
       440,
       550,
       660,
-      700,
+      700, # this one is being counted when it shouldn't
       770,
       880
     ]
@@ -335,13 +299,15 @@ def main():
 
   scale_harmonics = get_all_scale_harmonics(notes, tol)
   # Actually, this one is wrong
+  print("Checkiing for commons:")
   value_harmonics = get_all_value_harmonics(notes, tol)
+  print("\nChecking for stricts:")
   # Can't help but feel that this one **MUST** be wrong
   reltv_harmonics = get_all_value_harmonics(notes, tol, 1)
 
-  print("Harmonics by octave:")
-  pp.pprint(scale_harmonics)
-  print()
+  # print("Harmonics by octave:")
+  # pp.pprint(scale_harmonics)
+  # print()
   print("Harmonics by (common) multiples:")
   pp.pprint(value_harmonics)
   print()
@@ -386,7 +352,7 @@ def main():
   # plt.title("Harmonic by Series")
   plt.title("Harmonics by (strict) multiples:")
 
-  plt.show()
+  # plt.show()
 
 
 if __name__ == '__main__':
