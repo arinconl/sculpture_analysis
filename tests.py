@@ -190,7 +190,7 @@ class TestHarmonics(unittest.TestCase):
     # Check
     self.assertEqual(resl, expt)
 
-  def test_all_harmonic_searches(self):
+  def test_all_harmonic_searches_brief(self):
 
     # Make note objects
     freqs = [
@@ -266,6 +266,84 @@ class TestHarmonics(unittest.TestCase):
     self.assertEqual(reslA, exptA)
     self.assertEqual(reslB, exptB)
     self.assertEqual(reslC, exptC)
+
+  def test_all_harmonic_searches_full(self):
+
+    # Make note objects
+    freqs = [
+      220,
+      330,
+      440,
+      550,
+      660,
+      700,
+      770,
+      880
+    ]
+
+    # Set tolerance level
+    tol = 1/8
+
+    # Make Notes from Frequencies (using mode=1)
+    notes = []
+    for f in freqs:
+      notes.append(Note(f, 1))
+    
+    # All with respect to the first note:
+    # Find scale harmonics for first note
+    valsA = get_all_scale_harmonics(notes, tol)
+    valsA = valsA[notes[0]]
+
+    # Convert to strings
+    reslA = []
+    for n in valsA:
+      reslA.append(n.notation())
+
+    
+    # Find scale harmonics for first note
+    valsB = get_all_value_harmonics(notes, tol, 0)
+    valsB = valsB[notes[0]]
+
+    # Convert to strings
+    reslB = []
+    for n in valsB:
+      reslB.append(n.notation())
+
+    
+    # Find scale harmonics for first note
+    valsC = get_all_value_harmonics(notes, tol, 1)
+    valsC = valsC[notes[0]]
+
+    # Convert to strings
+    reslC = []
+    for n in valsC:
+      reslC.append(n.notation())
+
+    # Expected harmonizing notes (by octave)
+    exptA = [ 
+      'A4', 
+      'A5'
+    ]
+    # Expected harmonizing notes (by [common] multiple)
+    exptB = [ 
+      'E4 + 2 cents',
+      'A4', 
+      'Db5 - 14 cents', 
+      'E5 + 2 cents', 
+      'G5 - 31 cents', 
+      'A5'
+    ]
+    # Expected harmonizing notes (by [strict] multiple)
+    exptC = [ 
+      'A4', 
+      'E5 + 2 cents', 
+      'A5'
+    ]
+
+    # Check
+    self.assertEqual(len(reslA), 2)
+    self.assertEqual(len(reslB), 6)
+    self.assertEqual(len(reslC), 3)
 
 
 if __name__ == '__main__':

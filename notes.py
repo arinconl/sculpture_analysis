@@ -293,32 +293,37 @@ class Note:
 
 def main():
 
-  pp = pprint.PrettyPrinter(indent=4)
+  asking_for_input = False;
 
-  f_data = get_input_from_fusion()
-  rads = get_rad_column(f_data)
+  pp = pprint.PrettyPrinter(indent=4)
 
   tol_fac = 8
   tol = 1/tol_fac
 
-  notes = []
-  for r in rads:
-    notes.append(Note(r))
+  if (asking_for_input):
+    f_data = get_input_from_fusion()
+    rads = get_rad_column(f_data)
 
-  """
-  fr = [
-    220,
-    330,
-    440,
-    550,
-    660,
-    770,
-    880
-  ]
-  notes = []
-  for f in fr:
-    notes.append(Note(f, 1))
-  """
+    notes = []
+    for r in rads:
+      notes.append(Note(r))
+
+  else: #testing
+
+    fr = [
+      220,
+      330,
+      440,
+      550,
+      660,
+      700,
+      770,
+      880
+    ]
+    notes = []
+    for f in fr:
+      notes.append(Note(f, 1))
+  
 
   # for f in frqs:
   #   notes.append(Note(f,1))
@@ -329,11 +334,21 @@ def main():
   #   print()
 
   scale_harmonics = get_all_scale_harmonics(notes, tol)
+  # Actually, this one is wrong
   value_harmonics = get_all_value_harmonics(notes, tol)
+  # Can't help but feel that this one **MUST** be wrong
   reltv_harmonics = get_all_value_harmonics(notes, tol, 1)
 
-  # pp.pprint(scale_harmonics)
-  # pp.pprint(value_harmonics)
+  print("Harmonics by octave:")
+  pp.pprint(scale_harmonics)
+  print()
+  print("Harmonics by (common) multiples:")
+  pp.pprint(value_harmonics)
+  print()
+  print("Harmonics by (strict) multiples:")
+  pp.pprint(reltv_harmonics)
+  
+  # reltv_harmonics = get_all_reltv_harmonics(notes, tol)
   # pp.pprint(reltv_harmonics)
 
   plotput = {}
@@ -341,6 +356,11 @@ def main():
     plotput[k.notation()] = len(v)
   f = plt.figure(1)
   plt.bar(list(plotput.keys()), plotput.values(), color='g')
+  plt.xticks(rotation='vertical')
+  plt.xlabel('Note in notation')
+  plt.ylabel('Harmonizing Notes (#)')
+  # plt.title("Harmonic by Scale")
+  plt.title("Harmonics by octave:")
 
   plotput = {}
   for k,v in value_harmonics.items():
@@ -348,6 +368,10 @@ def main():
   g = plt.figure(2)
   plt.bar(list(plotput.keys()), plotput.values(), color='g')
   plt.xticks(rotation='vertical')
+  plt.xlabel('Note in notation')
+  plt.ylabel('Harmonizing Notes (#)')
+  # plt.title("Harmonic by Integer")
+  plt.title("Harmonics by (common) multiples:")
 
   plotput = {}
   for k,v in reltv_harmonics.items():
@@ -355,6 +379,12 @@ def main():
   h = plt.figure(3)
   plt.bar(list(plotput.keys()), plotput.values(), color='g')
   plt.xticks(rotation='vertical')
+  # yint = range(min(y), math.ceil(max(y))+1)
+  # plt.yticks(yint)
+  plt.xlabel('Note in notation')
+  plt.ylabel('Harmonizing Notes (#)')
+  # plt.title("Harmonic by Series")
+  plt.title("Harmonics by (strict) multiples:")
 
   plt.show()
 
