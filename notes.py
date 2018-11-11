@@ -225,25 +225,26 @@ class Note:
         if ( (curr <= tolerance) or ( (10 - curr) <= tolerance) ):
           return round(intr/10)
 
-    def check_base_frequency(this, that, tolerance):
+    def find_strict_multiple(this, that, tolerance):
 
-      tolerance *= 10
-      if (tolerance > 10):
-        tolerance = 10
-      print("tolerance: " + str(tolerance))
-      print("(" + str(that) + "/" + str(this) + ") --> " + str(round(that/this,2)) + " % 1 = " + str(round(( that/this ) % 1, 2)) + " --> " + str(( that/this ) % 1 == 0) )
-      return ( that/this ) % 1 == 0
+      val = (that/this) % 1
+
+      if ( (val < tolerance) or (( 1 - val ) < tolerance) ):
+        return ( that/this )
 
     harm_notes = []
 
     for n in range(len(all_notes)):
       if ( self != all_notes[n] ):
-        if (mode):
-          base = find_base_frequency(self.freq, all_notes[n].freq, tolerance)
+        if (not mode):
+          print("MODE IS ON MY DUDES")
+          mult = find_base_frequency(self.freq, all_notes[n].freq, tolerance)
+        # Search for strict multiples
         else:
-          base = check_base_frequency(self.freq, all_notes[n].freq, tolerance)
-        print("Current base:", base)
-        if (base):
+          mult = find_strict_multiple(self.freq, all_notes[n].freq, tolerance)
+        
+        print("Current base:", mult)
+        if (mult):
           harm_notes.append(all_notes[n])
 
     return harm_notes
@@ -280,7 +281,7 @@ def main():
       440,
       550,
       660,
-      700, # this one is being counted when it shouldn't
+      # 700, # this one is being counted when it shouldn't
       770,
       880
     ]
@@ -310,9 +311,9 @@ def main():
   # print()
   print("Harmonics by (common) multiples:")
   pp.pprint(value_harmonics)
-  print()
-  print("Harmonics by (strict) multiples:")
-  pp.pprint(reltv_harmonics)
+  # print()
+  # print("Harmonics by (strict) multiples:")
+  # pp.pprint(reltv_harmonics)
   
   # reltv_harmonics = get_all_reltv_harmonics(notes, tol)
   # pp.pprint(reltv_harmonics)
@@ -352,7 +353,7 @@ def main():
   # plt.title("Harmonic by Series")
   plt.title("Harmonics by (strict) multiples:")
 
-  # plt.show()
+  plt.show()
 
 
 if __name__ == '__main__':
