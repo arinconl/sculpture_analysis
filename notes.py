@@ -76,11 +76,10 @@ def get_all_value_harmonics(all_notes, tolerance, mode=0):
 
   return value_harmonics
 
-# !TODO: fix this to use value_harmonics depending on mode
 def get_all_reltv_harmonics(all_notes, tolerance):
   reltv_harmonics = {}
   # for n in range(len(notes)):
-  for n in range(1):
+  for n in range(len(all_notes)):
     curr_harms = all_notes[n].find_reltv_harmonics(all_notes, tolerance)
     if (len(curr_harms) > 0):
       reltv_harmonics[all_notes[n]] = curr_harms
@@ -94,24 +93,35 @@ class Note:
   # Private Vars
   midi_note = [ "C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B" ]
   EPS = 0.1
+  # This is an approximation for the analytical assistant
+  #  (still need to mathematically evaulate a better ver.)
+  f_fac = 39.5
 
   # Constructor
   def __init__(self, frequency = 0, mode = 0):
     def r2f(radian):
-      # This is an approximation for the analytical assistant
-      #  (still need to mathematically evaulate a better ver.)
-      f_fac = 39.5
 
       frq = 2 * math.pi * radian
       if (frq < self.EPS):
         frq = 0
       
-      frq /= f_fac
+      frq /= self.f_fac
 
       return frq
 
+    def f2r(frequency):
+
+      rad = frequency * self.f_fac
+
+      rad /= 2 * math.pi
+
+      return rad
+
     def f2m(frequency):
       return ( 12*math.log2(frequency/440) + 69 )
+
+    def m2f(midi):
+      return 440*2**( (midi - 69)/12 )
 
     def m2o(midi):
       c_fac = 2
@@ -135,9 +145,19 @@ class Note:
 
     if (frequency):
       if (mode == 1):
-        self.rads = 0
         self.freq = frequency
+        self.rads = f2r(self.freq)
+        #
         self.midi = f2m(self.freq)
+        self.octv = m2o(self.midi)
+        self.note = m2n(self.midi)
+        self.cent = m2c(self.midi)
+      elif (mode == 2):
+        self.midi = frequency
+        self.freq = m2f(self.midi)
+        self.rads = f2r(self.freq)
+        #
+        #
         self.octv = m2o(self.midi)
         self.note = m2n(self.midi)
         self.cent = m2c(self.midi)
@@ -220,8 +240,7 @@ class Note:
 
     for n in range(len(all_notes)):
       if ( self != all_notes[n] ):
-        base = find_base_frequency(self.freq, all_notes[n].freq, tolerance)
-        if (not mode):
+        if (mode):
           base = find_base_frequency(self.freq, all_notes[n].freq, tolerance)
         else:
           base = self.freq
@@ -286,6 +305,21 @@ def main():
   for r in rads:
     notes.append(Note(r))
 
+  """
+  fr = [
+    220,
+    330,
+    440,
+    550,
+    660,
+    770,
+    880
+  ]
+  notes = []
+  for f in fr:
+    notes.append(Note(f, 1))
+  """
+
   # for f in frqs:
   #   notes.append(Note(f,1))
 
@@ -297,11 +331,10 @@ def main():
   scale_harmonics = get_all_scale_harmonics(notes, tol)
   value_harmonics = get_all_value_harmonics(notes, tol)
   reltv_harmonics = get_all_value_harmonics(notes, tol, 1)
-  # reltv_harmonics = get_all_reltv_harmonics(notes, tol)
 
-  pp.pprint(scale_harmonics)
-  pp.pprint(value_harmonics)
-  pp.pprint(reltv_harmonics)
+  # pp.pprint(scale_harmonics)
+  # pp.pprint(value_harmonics)
+  # pp.pprint(reltv_harmonics)
 
   plotput = {}
   for k,v in scale_harmonics.items():
