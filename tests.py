@@ -46,10 +46,12 @@ class TestNotesObject(unittest.TestCase):
     # Make a note object
     n0 = Note(0.42)
     n1 = Note(0.64)
+    n2 = Note(0.50)
 
     # Check
     self.assertEqual(str(n0), "Db-8 - 22 cents")
     self.assertNotEqual(str(n1), "Db-8 - 22 cents")
+    self.assertEqual(str(n2), "Db-8 0 22 cents")
 
 
 class TestFrequencies(unittest.TestCase):
