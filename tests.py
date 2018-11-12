@@ -303,6 +303,22 @@ class TestHarmonics(unittest.TestCase):
     # Find scale harmonics for first note
     valsC = get_all_value_harmonics(notes, tol, 1)
 
+    """
+    print()
+    print("notes:")
+    print(notes)
+    print()
+    print("valsA:")
+    print(valsA)
+    print()
+    print("valsB:")
+    print(valsB)
+    print()
+    print("valsC:")
+    print(valsC)
+    print()
+    """
+
     # Check
     self.assertEqual(len(valsA[notes[0]]), 2)
     self.assertEqual(len(valsB[notes[0]]), 6)
@@ -316,25 +332,25 @@ class TestHarmonics(unittest.TestCase):
     self.assertEqual(len(valsB[notes[2]]), 6)
     self.assertEqual(len(valsC[notes[2]]), 1)
     
-    self.assertEqual(len(valsA[notes[3]]), 0)
+    self.assertFalse(notes[3] in valsA)
     self.assertEqual(len(valsB[notes[3]]), 6)
-    self.assertEqual(len(valsC[notes[3]]), 0)
+    self.assertFalse(notes[3] in valsC)
     
     self.assertEqual(len(valsA[notes[4]]), 1)
     self.assertEqual(len(valsB[notes[4]]), 6)
-    self.assertEqual(len(valsC[notes[4]]), 0)
+    self.assertFalse(notes[4] in valsC)
     
-    self.assertEqual(len(valsA[notes[5]]), 0)
-    self.assertEqual(len(valsB[notes[5]]), 0)
-    self.assertEqual(len(valsC[notes[5]]), 0)
+    self.assertFalse(notes[5] in valsA)
+    self.assertFalse(notes[5] in valsB)
+    self.assertFalse(notes[5] in valsC)
     
-    self.assertEqual(len(valsA[notes[6]]), 0)
+    self.assertFalse(notes[6] in valsA)
     self.assertEqual(len(valsB[notes[6]]), 6)
-    self.assertEqual(len(valsC[notes[6]]), 0)
+    self.assertFalse(notes[6] in valsC)
     
     self.assertEqual(len(valsA[notes[7]]), 2)
     self.assertEqual(len(valsB[notes[7]]), 6)
-    self.assertEqual(len(valsC[notes[7]]), 0)
+    self.assertFalse(notes[7] in valsC)
 
 
 if __name__ == '__main__':
