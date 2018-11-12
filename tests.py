@@ -190,7 +190,8 @@ class TestHarmonics(unittest.TestCase):
     # Check
     self.assertEqual(resl, expt)
 
-  def test_all_harmonic_searches(self):
+  """
+  def test_all_harmonic_searches_brief(self):
 
     # Make note objects
     freqs = [
@@ -266,6 +267,90 @@ class TestHarmonics(unittest.TestCase):
     self.assertEqual(reslA, exptA)
     self.assertEqual(reslB, exptB)
     self.assertEqual(reslC, exptC)
+  """
+
+  def test_all_harmonic_searches_full(self):
+
+    # Make note objects
+    freqs = [
+      220,
+      330,
+      440,
+      550,
+      660,
+      700,
+      770,
+      880
+    ]
+
+    # Set tolerance level
+    tol = 1/8
+
+    # Make Notes from Frequencies (using mode=1)
+    notes = []
+    for f in freqs:
+      notes.append(Note(f, 1))
+    
+    # All with respect to the first note:
+    # Find scale harmonics for first note
+    valsA = get_all_scale_harmonics(notes, tol)
+
+    
+    # Find scale harmonics for first note
+    valsB = get_all_value_harmonics(notes, tol, 0)
+
+    
+    # Find scale harmonics for first note
+    valsC = get_all_value_harmonics(notes, tol, 1)
+
+    """
+    print()
+    print("notes:")
+    print(notes)
+    print()
+    print("valsA:")
+    print(valsA)
+    print()
+    print("valsB:")
+    print(valsB)
+    print()
+    print("valsC:")
+    print(valsC)
+    print()
+    """
+
+    # Check
+    self.assertEqual(len(valsA[notes[0]]), 2)
+    self.assertEqual(len(valsB[notes[0]]), 6)
+    self.assertEqual(len(valsC[notes[0]]), 3)
+    
+    self.assertEqual(len(valsA[notes[1]]), 1)
+    self.assertEqual(len(valsB[notes[1]]), 6)
+    self.assertEqual(len(valsC[notes[1]]), 1)
+    
+    self.assertEqual(len(valsA[notes[2]]), 2)
+    self.assertEqual(len(valsB[notes[2]]), 6)
+    self.assertEqual(len(valsC[notes[2]]), 1)
+    
+    self.assertFalse(notes[3] in valsA)
+    self.assertEqual(len(valsB[notes[3]]), 6)
+    self.assertFalse(notes[3] in valsC)
+    
+    self.assertEqual(len(valsA[notes[4]]), 1)
+    self.assertEqual(len(valsB[notes[4]]), 6)
+    self.assertFalse(notes[4] in valsC)
+    
+    self.assertFalse(notes[5] in valsA)
+    self.assertFalse(notes[5] in valsB)
+    self.assertFalse(notes[5] in valsC)
+    
+    self.assertFalse(notes[6] in valsA)
+    self.assertEqual(len(valsB[notes[6]]), 6)
+    self.assertFalse(notes[6] in valsC)
+    
+    self.assertEqual(len(valsA[notes[7]]), 2)
+    self.assertEqual(len(valsB[notes[7]]), 6)
+    self.assertFalse(notes[7] in valsC)
 
 
 if __name__ == '__main__':

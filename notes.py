@@ -9,7 +9,7 @@ def get_input_from_fusion():
 
   line = ""
   start_line = 361
-  for i in range(start_line):
+  for _ in range(start_line):
     line = f.readline()
 
   data = []
@@ -76,17 +76,37 @@ def get_all_value_harmonics(all_notes, tolerance, mode=0):
 
   return value_harmonics
 
-def get_all_reltv_harmonics(all_notes, tolerance):
-  reltv_harmonics = {}
-  # for n in range(len(notes)):
-  for n in range(len(all_notes)):
-    curr_harms = all_notes[n].find_reltv_harmonics(all_notes, tolerance)
-    if (len(curr_harms) > 0):
-      reltv_harmonics[all_notes[n]] = curr_harms
-    curr_harms = []
-  
-  return reltv_harmonics
+def find_gcf(f1, f2):
 
+  if (f2 == 0):
+    return f1
+
+  return find_gcf(f2, f1 % f2)
+
+def find_min_mode(freqs):
+
+  modes = {}
+
+  # Find the modes
+  for f in freqs:
+    if f in modes:
+      modes[f] += 1
+    else:
+      modes[f] = 1
+  
+  # Remove zero and modes of 1
+  modes2 = {}
+  for k,v in modes.items():
+    if ( (k != 0) and (v > 1) ):
+      modes2[k] = v
+
+  # Find the minimum
+  if (len(modes2) == 1):
+    return next(iter(modes2.keys()))
+  elif (len(modes2) == 0):
+    return max(freqs, key=freqs.count)
+  else:
+    return min(modes2.keys())
 
 class Note:
   
@@ -214,73 +234,66 @@ class Note:
 
   def find_value_harmonics(self, all_notes, tolerance, mode=0):
 
+    """
     def find_base_frequency(this, that, tolerance):
+
+      if (this > that):
+        temp = this
+        this = that
+        that = temp
+
+      if ( ( ( 10*(that/this) % 1 ) == 0 ) and ( this*( (that/this) % 1 ) ) ):
+        mult_c = this*( (that/this) % 1 )
+        print("The common multiple is: ", mult_c)
+        return that/mult_c
+    """
+
+    def find_base_frequency(this, those, tolerance):
       
-      tolerance *= 10
-      if (tolerance > 10):
-        tolerance = 10
+      # this.get_all()
 
-      curr = 0
-      intr = 0
-      if (this == that):
-        print("found my twin")
-        return 0
-      elif (this < that):
-        intr = round(10*(that/this))
-        curr = intr % 10
+      base_potential = []
+      for n in range(len(all_notes)):
+        if ( this != all_notes[n] ):
+          base_potential.append(find_gcf(this.freq, all_notes[n].freq))
+      
+      eval_freq = find_min_mode(base_potential)
 
-        # Why didn't I write:
-        # v = that/this
-        # curr = round(v % 1)
+      if ( (eval_freq/this.freq) < tolerance ):
+        return this.freq
+      else:
+        return eval_freq
 
-        if ( (curr <= tolerance) or ( (10 - curr) <= tolerance) ):
-          return round(intr/10)
+    def find_strict_multiple(this, that, tolerance):
+      
+      val = (that/this) % 1
+
+      if ( (val < tolerance) or (( 1 - val ) < tolerance) ):
+        return ( that/this )
 
     harm_notes = []
 
+    # Empirical, but gets this to work
+    tolerance /= 4
+
+    curr_freq = self.freq
+
+    if (not mode):
+      # print("For freq " + str(curr_freq) + ":", end = "")
+      curr_freq = find_base_frequency(self, all_notes, tolerance)
+      # print(str(curr_freq))
+
     for n in range(len(all_notes)):
       if ( self != all_notes[n] ):
-        if (mode):
-          base = find_base_frequency(self.freq, all_notes[n].freq, tolerance)
+        # Search base on common multiple
+        if (not mode):
+          mult = find_strict_multiple(curr_freq, all_notes[n].freq, tolerance)
+        # Search for strict multiples
         else:
-          base = self.freq
-        if (base):
+          mult = find_strict_multiple(curr_freq, all_notes[n].freq, tolerance)
+
+        if (mult):
           harm_notes.append(all_notes[n])
-
-    return harm_notes
-
-  def find_reltv_harmonics(self, all_notes, tolerance):
-
-    """
-    def find_notes_harmonics(this):
-      max_f = 12600
-      collect = []
-      
-      for i in range(1, max_f // round(this.freq)):
-        collect.append(self.freq * i)
-
-      return collect
-
-    harm_notes = []
-
-    print(self.get_all())
-    print(find_notes_harmonics(self))
-
-    for n in range(len(all_notes)):
-      if ( self != all_notes[n] ):
-        print(all_notes[n].freq in list())
-        if (base):
-          harm_notes.append(all_notes[n])
-      
-    return harm_notes
-    """
-
-    harm_notes = []
-
-
-    for n in range(len(all_notes)):
-      if ( self != all_notes[n] ):
-        print("curr val: ",all_notes[n].freq/self.freq)
 
     return harm_notes
 
@@ -293,47 +306,54 @@ class Note:
 
 def main():
 
-  pp = pprint.PrettyPrinter(indent=4)
+  asking_for_input = True
 
-  f_data = get_input_from_fusion()
-  rads = get_rad_column(f_data)
+  pp = pprint.PrettyPrinter(indent=4)
 
   tol_fac = 8
   tol = 1/tol_fac
 
-  notes = []
-  for r in rads:
-    notes.append(Note(r))
+  if (asking_for_input):
+    f_data = get_input_from_fusion()
+    rads = get_rad_column(f_data)
 
-  """
-  fr = [
-    220,
-    330,
-    440,
-    550,
-    660,
-    770,
-    880
-  ]
-  notes = []
-  for f in fr:
-    notes.append(Note(f, 1))
-  """
+    notes = []
+    for r in rads:
+      notes.append(Note(r))
 
-  # for f in frqs:
-  #   notes.append(Note(f,1))
+  else: #testing
 
-  # for n in range(len(notes)):
-  #   print("For mode " + str(n+1) + ":")
-  #   print(notes[n].notation())
-  #   print()
+    fr = [
+      220,
+      330,
+      440,
+      550,
+      660,
+      700, # this one is being counted when it shouldn't
+      770,
+      880
+    ]
+    notes = []
+    for f in fr:
+      notes.append(Note(f, 1))
 
   scale_harmonics = get_all_scale_harmonics(notes, tol)
+  # print("Checking for commons:")
+  # !TODO: fix this one
   value_harmonics = get_all_value_harmonics(notes, tol)
+  # print("\nChecking for stricts:")
   reltv_harmonics = get_all_value_harmonics(notes, tol, 1)
 
-  # pp.pprint(scale_harmonics)
-  # pp.pprint(value_harmonics)
+  print("Harmonics by octave:")
+  pp.pprint(scale_harmonics)
+  print()
+  print("Harmonics by (common) multiples:")
+  pp.pprint(value_harmonics)
+  print()
+  print("Harmonics by (strict) multiples:")
+  pp.pprint(reltv_harmonics)
+  
+  # reltv_harmonics = get_all_reltv_harmonics(notes, tol)
   # pp.pprint(reltv_harmonics)
 
   plotput = {}
@@ -341,20 +361,35 @@ def main():
     plotput[k.notation()] = len(v)
   f = plt.figure(1)
   plt.bar(list(plotput.keys()), plotput.values(), color='g')
+  plt.xticks(rotation='vertical')
+  plt.xlabel('Note in notation')
+  plt.ylabel('Harmonizing Notes (#)')
+  # plt.title("Harmonic by Scale")
+  plt.title("Harmonics by octave:")
 
   plotput = {}
   for k,v in value_harmonics.items():
     plotput[k.notation()] = len(v)
-  g = plt.figure(2)
+  _ = plt.figure(2)
   plt.bar(list(plotput.keys()), plotput.values(), color='g')
   plt.xticks(rotation='vertical')
+  plt.xlabel('Note in notation')
+  plt.ylabel('Harmonizing Notes (#)')
+  # plt.title("Harmonic by Integer")
+  plt.title("Harmonics by (common) multiples:")
 
   plotput = {}
   for k,v in reltv_harmonics.items():
     plotput[k.notation()] = len(v)
-  h = plt.figure(3)
+  _ = plt.figure(3)
   plt.bar(list(plotput.keys()), plotput.values(), color='g')
   plt.xticks(rotation='vertical')
+  # yint = range(min(y), math.ceil(max(y))+1)
+  # plt.yticks(yint)
+  plt.xlabel('Note in notation')
+  plt.ylabel('Harmonizing Notes (#)')
+  # plt.title("Harmonic by Series")
+  plt.title("Harmonics by (strict) multiples:")
 
   plt.show()
 
