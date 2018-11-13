@@ -3,8 +3,11 @@ import math
 import numpy as np
 import matplotlib.pyplot as plt
 
-def get_input_from_fusion():
+def get_file_name():
   file_name = input("Enter the file name: ")
+  return file_name
+
+def get_input_from_fusion(file_name):
   f = open(file_name, "r")
 
   line = ""
@@ -108,6 +111,53 @@ def find_min_mode(freqs):
   else:
     return min(modes2.keys())
 
+def gen_lily_file(file_name, all_notes, scale_harms, value_harms, reltv_harms):
+  outp = gen_lily_version() + gen_lily_header(file_name) + gen_lily_content(all_notes, scale_harms, value_harms, reltv_harms)
+  return outp
+
+def gen_lily_version():
+  return "\\version \"2.18.2\"\n"
+
+def gen_lily_header(title):
+  return "\\header {\n  title = " + str(title) + "\n}\n"
+
+def gen_lily_all_notes(all_notes):
+  r = "\\score {\n  \\new Staff {\n    "
+  for n in all_notes:
+    r += n.get_lily() + " "
+  r += "\n  }\n  \\header {\n    piece = \"All Notes\"\n  }\n}\n"
+  return r
+
+def gen_lily_harmonics(harms, mode):
+
+  r = "\\score {\n  \\new Staff {\n"
+
+  for k,v in harms.items():
+    r += "    " + k.get_lily() + "1 "
+    for n in v:
+      r += n.get_lily() + "4 "
+    # r += "| \\break\n"
+    r += "\\bar \"|.\"\n"
+
+  r += "  }\n  \\header {\n    piece = \""
+
+  if (mode == 0):
+    r += "Harmonics by Octave"
+  elif (mode == 1):
+    r += "Harmonics by Common Multiple"
+  elif (mode == 2):
+    r += "Harmonics by Multiple"
+  else:
+    r += "Harmonics"
+
+  r += "\"\n  }\n}\n"
+  return r
+
+def gen_lily_content(all_notes, scale_harms, value_harms, reltv_harms):
+  return gen_lily_all_notes(all_notes) + gen_lily_harmonics(scale_harms, 0) + gen_lily_harmonics(value_harms, 1) + gen_lily_harmonics(reltv_harms, 2)
+
+# def gen_lily_footer():
+#   return "\n}"
 class Note:
   
   # Private Vars
@@ -297,8 +347,25 @@ class Note:
 
     return harm_notes
 
+  def get_lily(self):
+
+    r = ""
+
+    temp1 = self.note
+    if (len(temp1) > 1):
+      r += temp1[0].lower() + "es"
+    else:
+      r += temp1.lower()
+    
+    temp2 = self.octv
+    if (temp2 >= 4):
+      r += (temp2 - 3)*"'"
+    else:
+      r += (3 - temp2)*","
+    
+    return r
+
   def __str__(self):
-    # TODO: lilypond export
     return self.notation()
 
   def __repr__(self):
@@ -314,7 +381,8 @@ def main():
   tol = 1/tol_fac
 
   if (asking_for_input):
-    f_data = get_input_from_fusion()
+    f_name = get_file_name()
+    f_data = get_input_from_fusion(f_name)
     rads = get_rad_column(f_data)
 
     notes = []
@@ -322,6 +390,8 @@ def main():
       notes.append(Note(r))
 
   else: #testing
+
+    f_name = "Test"
 
     fr = [
       220,
@@ -359,7 +429,7 @@ def main():
   plotput = {}
   for k,v in scale_harmonics.items():
     plotput[k.notation()] = len(v)
-  f = plt.figure(1)
+  _ = plt.figure(1)
   plt.bar(list(plotput.keys()), plotput.values(), color='g')
   plt.xticks(rotation='vertical')
   plt.xlabel('Note in notation')
@@ -392,6 +462,20 @@ def main():
   plt.title("Harmonics by (strict) multiples:")
 
   plt.show()
+
+  print()
+  print("Attempting to generate lily file.. ", end="   ")
+  # for n in notes:
+  #   print(n.get_lily())
+
+  f = open("output.ly", "w")
+  f.write(gen_lily_file("Results", notes, scale_harmonics, value_harmonics, reltv_harmonics))
+  f.close()
+
+  import subprocess
+  subprocess.run(["lilypond", "--silent", "output.ly"])
+
+  print("..lily file generated!")
 
 
 if __name__ == '__main__':

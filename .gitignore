@@ -9,3 +9,9 @@ ss/
 
 *.txt
 !requirements.txt
+
+testing_lilypond/
+
+output\.ly
+
+output\.pdf
