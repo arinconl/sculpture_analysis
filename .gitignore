@@ -12,6 +12,6 @@ ss/
 
 testing_lilypond/
 
-output\.ly
+*.ly
 
 output\.pdf

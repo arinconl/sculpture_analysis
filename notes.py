@@ -158,6 +158,21 @@ def gen_lily_content(all_notes, scale_harms, value_harms, reltv_harms):
 
 # def gen_lily_footer():
 #   return "\n}"
+
+def remove_out_of_bounds_notes(all_notes, low_end=20, high_end=20000):
+  notes_to_keep = [];
+  kk = 0
+  for n in all_notes:
+    if ( (n.freq > low_end) and (n.freq < high_end) ):
+      notes_to_keep.append(n)
+    else:
+      kk += 1
+  
+  print(kk, "notes have been discarded.")
+
+  return notes_to_keep
+      
+
 class Note:
   
   # Private Vars
@@ -407,6 +422,12 @@ def main():
     for f in fr:
       notes.append(Note(f, 1))
 
+  notes = remove_out_of_bounds_notes(notes)
+
+  for n in notes:
+    n.get_all()
+    print()
+
   scale_harmonics = get_all_scale_harmonics(notes, tol)
   # print("Checking for commons:")
   # !TODO: fix this one
@@ -461,8 +482,6 @@ def main():
   # plt.title("Harmonic by Series")
   plt.title("Harmonics by (strict) multiples:")
 
-  plt.show()
-
   print()
   print("Attempting to generate lily file.. ", end="   ")
   # for n in notes:
@@ -476,6 +495,8 @@ def main():
   subprocess.run(["lilypond", "--silent", "output.ly"])
 
   print("..lily file generated!")
+
+  plt.show()
 
 
 if __name__ == '__main__':
