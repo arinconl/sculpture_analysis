@@ -3,6 +3,10 @@ import math
 import numpy as np
 import matplotlib.pyplot as plt
 
+from to_lily import *
+
+DEBUG_BOOL = False
+
 def get_file_name():
   file_name = input("Enter the file name: ")
   return file_name
@@ -115,12 +119,15 @@ def gen_lily_file(file_name, all_notes, scale_harms, value_harms, reltv_harms):
   outp = gen_lily_version() + gen_lily_header(file_name) + gen_lily_content(all_notes, scale_harms, value_harms, reltv_harms)
   return outp
 
+#t
 def gen_lily_version():
   return "\\version \"2.18.2\"\n"
 
+#t
 def gen_lily_header(title):
   return "\\header {\n  title = " + str(title) + "\n}\n"
 
+#t
 def gen_lily_all_notes(all_notes):
   r = "\\score {\n  \\new Staff {\n    "
   for n in all_notes:
@@ -128,6 +135,7 @@ def gen_lily_all_notes(all_notes):
   r += "\n  }\n  \\header {\n    piece = \"All Notes\"\n  }\n}\n"
   return r
 
+#t
 def gen_lily_harmonics(harms, mode):
 
   r = "\\score {\n  \\new Staff {\n"
@@ -153,14 +161,13 @@ def gen_lily_harmonics(harms, mode):
   r += "\"\n  }\n}\n"
   return r
 
+#t
 def gen_lily_content(all_notes, scale_harms, value_harms, reltv_harms):
   return gen_lily_all_notes(all_notes) + gen_lily_harmonics(scale_harms, 0) + gen_lily_harmonics(value_harms, 1) + gen_lily_harmonics(reltv_harms, 2)
 
-# def gen_lily_footer():
-#   return "\n}"
-
+#t
 def remove_out_of_bounds_notes(all_notes, low_end=20, high_end=20000):
-  notes_to_keep = [];
+  notes_to_keep = []
   kk = 0
   for n in all_notes:
     if ( (n.freq > low_end) and (n.freq < high_end) ):
@@ -362,7 +369,7 @@ class Note:
 
     return harm_notes
 
-  def get_lily(self):
+  def get_lily(self, mode=0):
 
     r = ""
 
@@ -377,6 +384,15 @@ class Note:
       r += (temp2 - 3)*"'"
     else:
       r += (3 - temp2)*","
+
+    if mode:
+      r += str(mode)
+
+    temp3 = int(self.cent)
+    if (temp3 > 0):
+      r += "^\\markup { " + str(round(self.cent)) + " }"
+    elif (temp3 < 0):
+      r += "_\\markup { " + str(round(self.cent)) + " }"
     
     return r
 
@@ -414,7 +430,7 @@ def main():
       440,
       550,
       660,
-      700, # this one is being counted when it shouldn't
+      700,
       770,
       880
     ]
@@ -422,16 +438,18 @@ def main():
     for f in fr:
       notes.append(Note(f, 1))
 
-  notes = remove_out_of_bounds_notes(notes)
+  notes = extract_notes_in_range(notes)
 
+  # """
   for n in notes:
     n.get_all()
     print()
+  # """
 
   scale_harmonics = get_all_scale_harmonics(notes, tol)
   # print("Checking for commons:")
-  # !TODO: fix this one
   value_harmonics = get_all_value_harmonics(notes, tol)
+  # !TODO: fix this one
   # print("\nChecking for stricts:")
   reltv_harmonics = get_all_value_harmonics(notes, tol, 1)
 
@@ -441,8 +459,8 @@ def main():
   print("Harmonics by (common) multiples:")
   pp.pprint(value_harmonics)
   print()
-  print("Harmonics by (strict) multiples:")
-  pp.pprint(reltv_harmonics)
+  # print("Harmonics by (strict) multiples:")
+  # pp.pprint(reltv_harmonics)
   
   # reltv_harmonics = get_all_reltv_harmonics(notes, tol)
   # pp.pprint(reltv_harmonics)
@@ -488,7 +506,7 @@ def main():
   #   print(n.get_lily())
 
   f = open("output.ly", "w")
-  f.write(gen_lily_file("Results", notes, scale_harmonics, value_harmonics, reltv_harmonics))
+  f.write(generate_lily_content("Results", notes, scale_harmonics, value_harmonics, reltv_harmonics))
   f.close()
 
   import subprocess
@@ -496,7 +514,7 @@ def main():
 
   print("..lily file generated!")
 
-  plt.show()
+  # plt.show()
 
 
 if __name__ == '__main__':
