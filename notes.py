@@ -3,6 +3,7 @@ import math
 import numpy as np
 import matplotlib.pyplot as plt
 
+from from_fusion import *
 from to_lily import *
 
 DEBUG_BOOL = False
@@ -11,6 +12,7 @@ def get_file_name():
   file_name = input("Enter the file name: ")
   return file_name
 
+#t
 def get_input_from_fusion(file_name):
   f = open(file_name, "r")
 
@@ -413,8 +415,11 @@ def main():
 
   if (asking_for_input):
     f_name = get_file_name()
-    f_data = get_input_from_fusion(f_name)
+    # f_data = get_input_from_fusion(f_name)
+    f_data = read_fusion_file(f_name)
     rads = get_rad_column(f_data)
+
+    print("There are " + str(len(rads)) + " potential notes!\n")
 
     notes = []
     for r in rads:
@@ -440,11 +445,13 @@ def main():
 
   notes = extract_notes_in_range(notes)
 
-  # """
+  print("There are " + str(len(notes)) + " audible notes!\n")
+
+  """
   for n in notes:
     n.get_all()
     print()
-  # """
+  """
 
   scale_harmonics = get_all_scale_harmonics(notes, tol)
   # print("Checking for commons:")
@@ -453,12 +460,12 @@ def main():
   # print("\nChecking for stricts:")
   reltv_harmonics = get_all_value_harmonics(notes, tol, 1)
 
-  print("Harmonics by octave:")
-  pp.pprint(scale_harmonics)
-  print()
-  print("Harmonics by (common) multiples:")
-  pp.pprint(value_harmonics)
-  print()
+  # print("Harmonics by octave:")
+  # pp.pprint(scale_harmonics)
+  # print()
+  # print("Harmonics by (common) multiples:")
+  # pp.pprint(value_harmonics)
+  # print()
   # print("Harmonics by (strict) multiples:")
   # pp.pprint(reltv_harmonics)
   
@@ -505,14 +512,17 @@ def main():
   # for n in notes:
   #   print(n.get_lily())
 
-  f = open("output.ly", "w")
-  f.write(generate_lily_content("Results", notes, scale_harmonics, value_harmonics, reltv_harmonics))
-  f.close()
+  if not DEBUG_BOOL:
+    f = open("output.ly", "w")
+    f.write(generate_lily_content("Results", notes, scale_harmonics, value_harmonics, reltv_harmonics))
+    f.close()
 
-  import subprocess
-  subprocess.run(["lilypond", "--silent", "output.ly"])
+    import subprocess
+    subprocess.run(["lilypond", "--silent", "output.ly"])
 
-  print("..lily file generated!")
+    print("..lily file generated!")
+  else:
+    print("..but in DEBUG mode.")
 
   # plt.show()
 
