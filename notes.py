@@ -1,8 +1,9 @@
 import pprint
 import math
 import numpy as np
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 
+from note_helpers import *
 from from_fusion import *
 from to_lily import *
 
@@ -11,51 +12,6 @@ DEBUG_BOOL = False
 def get_file_name():
   file_name = input("Enter the file name: ")
   return file_name
-
-#t
-def get_input_from_fusion(file_name):
-  f = open(file_name, "r")
-
-  line = ""
-  start_line = 361
-  for _ in range(start_line):
-    line = f.readline()
-
-  data = []
-  data_row = []
-  curr = ""
-  jj = 0
-  kk = False
-  while (len(line) > 3):
-    for ch in line:
-      if ( (ch != ' ') and (ch != '\n') ):
-        curr += ch
-        if (kk == False):
-          kk = True
-      elif (kk):
-        if (jj == 0):
-          data_row.append(int(curr))
-        else:
-          data_row.append(float(curr))
-        jj += 1
-
-        curr = ""
-        kk = False
-
-    data.append(data_row)
-    data_row = []
-    jj = 0
-
-    # Get next line and loop
-    line = f.readline()
-
-  return data
-
-def show_fusion_data(fusion):
-  print("[")
-  for ii in range(len(fusion)):
-    print(fusion[ii])
-  print("]")
 
 def get_rad_column(fusion):
   rads = []
@@ -117,70 +73,7 @@ def find_min_mode(freqs):
   else:
     return min(modes2.keys())
 
-def gen_lily_file(file_name, all_notes, scale_harms, value_harms, reltv_harms):
-  outp = gen_lily_version() + gen_lily_header(file_name) + gen_lily_content(all_notes, scale_harms, value_harms, reltv_harms)
-  return outp
 
-#t
-def gen_lily_version():
-  return "\\version \"2.18.2\"\n"
-
-#t
-def gen_lily_header(title):
-  return "\\header {\n  title = " + str(title) + "\n}\n"
-
-#t
-def gen_lily_all_notes(all_notes):
-  r = "\\score {\n  \\new Staff {\n    "
-  for n in all_notes:
-    r += n.get_lily() + " "
-  r += "\n  }\n  \\header {\n    piece = \"All Notes\"\n  }\n}\n"
-  return r
-
-#t
-def gen_lily_harmonics(harms, mode):
-
-  r = "\\score {\n  \\new Staff {\n"
-
-  for k,v in harms.items():
-    r += "    " + k.get_lily() + "1 "
-    for n in v:
-      r += n.get_lily() + "4 "
-    # r += "| \\break\n"
-    r += "\\bar \"|.\"\n"
-
-  r += "  }\n  \\header {\n    piece = \""
-
-  if (mode == 0):
-    r += "Harmonics by Octave"
-  elif (mode == 1):
-    r += "Harmonics by Common Multiple"
-  elif (mode == 2):
-    r += "Harmonics by Multiple"
-  else:
-    r += "Harmonics"
-
-  r += "\"\n  }\n}\n"
-  return r
-
-#t
-def gen_lily_content(all_notes, scale_harms, value_harms, reltv_harms):
-  return gen_lily_all_notes(all_notes) + gen_lily_harmonics(scale_harms, 0) + gen_lily_harmonics(value_harms, 1) + gen_lily_harmonics(reltv_harms, 2)
-
-#t
-def remove_out_of_bounds_notes(all_notes, low_end=20, high_end=20000):
-  notes_to_keep = []
-  kk = 0
-  for n in all_notes:
-    if ( (n.freq > low_end) and (n.freq < high_end) ):
-      notes_to_keep.append(n)
-    else:
-      kk += 1
-  
-  print(kk, "notes have been discarded.")
-
-  return notes_to_keep
-      
 
 class Note:
   
@@ -189,7 +82,9 @@ class Note:
   EPS = 0.1
   # This is an approximation for the analytical assistant
   #  (still need to mathematically evaulate a better ver.)
-  f_fac = 39.5
+  # f_fac = 39.5
+  # Experimentally obtained factor
+  f_fac = 39.478843774402250
 
   # Constructor
   def __init__(self, frequency = 0, mode = 0):
@@ -212,6 +107,8 @@ class Note:
       return rad
 
     def f2m(frequency):
+      # print("12 * math.log2( " + str(frequency) + "/440 ) + 69")
+      # print(frequency / 440)
       return ( 12*math.log2(frequency/440) + 69 )
 
     def m2f(midi):
@@ -414,16 +311,29 @@ def main():
   tol = 1/tol_fac
 
   if (asking_for_input):
+
+    f_data = extract_from_collection()
+    rads = get_data_rads(f_data)
+
+    """
     f_name = get_file_name()
     # f_data = get_input_from_fusion(f_name)
     f_data = read_fusion_file(f_name)
     rads = get_rad_column(f_data)
+    """
 
     print("There are " + str(len(rads)) + " potential notes!\n")
 
     notes = []
+
+    # print(rads)
+    # rads = rads[3:]
+    # print(rads)
+
     for r in rads:
-      notes.append(Note(r))
+      # print("looking at " + str(r))
+      if r is not 0:
+        notes.append(Note(r))
 
   else: #testing
 
@@ -445,13 +355,13 @@ def main():
 
   notes = extract_notes_in_range(notes)
 
-  print("There are " + str(len(notes)) + " audible notes!\n")
+  print("There are " + str(len(notes)) + " \"audible\" notes!\n")
 
-  """
+  # """
   for n in notes:
     n.get_all()
     print()
-  """
+  # """
 
   scale_harmonics = get_all_scale_harmonics(notes, tol)
   # print("Checking for commons:")
@@ -460,18 +370,22 @@ def main():
   # print("\nChecking for stricts:")
   reltv_harmonics = get_all_value_harmonics(notes, tol, 1)
 
-  # print("Harmonics by octave:")
-  # pp.pprint(scale_harmonics)
-  # print()
+  print("Harmonics by octave:")
+  pp.pprint(scale_harmonics)
+  print()
   # print("Harmonics by (common) multiples:")
   # pp.pprint(value_harmonics)
   # print()
   # print("Harmonics by (strict) multiples:")
   # pp.pprint(reltv_harmonics)
+
+  m = extract_midi_values(notes)
+  compare_with_pd(m)
   
   # reltv_harmonics = get_all_reltv_harmonics(notes, tol)
   # pp.pprint(reltv_harmonics)
 
+  """
   plotput = {}
   for k,v in scale_harmonics.items():
     plotput[k.notation()] = len(v)
@@ -506,6 +420,7 @@ def main():
   plt.ylabel('Harmonizing Notes (#)')
   # plt.title("Harmonic by Series")
   plt.title("Harmonics by (strict) multiples:")
+  """
 
   print()
   print("Attempting to generate lily file.. ", end="   ")
@@ -524,7 +439,9 @@ def main():
   else:
     print("..but in DEBUG mode.")
 
+  """
   # plt.show()
+  """
 
 
 if __name__ == '__main__':

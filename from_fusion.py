@@ -6,6 +6,73 @@ Serves to parse data from Fusion 360 data.out files.
 """
 
 
+import numpy as np
+
+
+def extract_from_collection():
+
+	#
+	# Ask user for files
+	#
+
+	file_names = []
+	while True:
+		
+		file_name_curr = input("Enter an input file (type \"Q\" to finish): ")
+
+		if (file_name_curr[0] == "Q"):
+			break
+		elif (len(file_name_curr) > 0):
+			file_names.append(file_name_curr)
+		else:
+			break
+
+	print("Collected files: ")
+	file_names = [
+		"inputs/fusion20-1000.out", "inputs/fusion1000-2000.out", 
+		"inputs/fusion2000-3000.out", "inputs/fusion3000-4000.out", 
+		"inputs/fusion4000-5000.out", "inputs/fusion5000-6000.out", 
+		"inputs/fusion6000-7000.out", "inputs/fusion7000-8000.out", 
+		"inputs/fusion8000-9000.out", "inputs/fusion9000-10000.out", 
+		]
+	print(file_names)
+	print()
+	
+
+	#
+	# Extract notes in files
+	#
+
+	if len(file_names) > 1:
+		data = np.array(read_fusion_file(file_names[0]))
+		file_names.reverse()
+		file_names.pop()
+		file_names.reverse()
+
+		for f in file_names:
+			data = np.vstack((data, read_fusion_file(f)))
+
+	elif len(file_names) == 1:
+		data = np.array(read_fusion_file(file_names[0]))
+
+	else:
+		data = np.array([])
+
+	# Process our data
+
+	# Sort it (wrt/ radian row)
+	data[data[:,1].argsort()]
+
+	# Remove dupes
+	# new_array = [tuple(row) for row in data]
+	# pruned = np.unique(new_array)
+
+	# print(data)
+	# print()
+	# print(pruned)
+
+
+	return data
 
 def set_fusion_data():
 	# ask for files to use
@@ -86,3 +153,12 @@ def print_fusion_data(fusion_data):
 	for ln in fusion_data:
 		print(ln)
 	print("]")
+
+
+def get_data_rads(data):
+	rads = []
+
+	for ii in range(len(data)):
+		rads.append(data[ii][2])
+	
+	return rads

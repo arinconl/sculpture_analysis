@@ -1,0 +1,14 @@
+Mesh Details:
+Document is being uploaded to cloud storage. Cloud job is pending.
+Scheduling job.
+Job scheduled successfully.
+4254 Tetrahedra : 100.0% of elements (100.0% of volume) 
+Face Angle min: 1.04, max : 177
+Dihedral Angle min: 1.36, max : 177
+Worst shape ratio : 756 on element 149
+Worst aspect ratio : 54.7 on element 48, shortest edge: 0.000178, longest : 0.0479
+Lowest collapse ratio : 0.00219 on element 149
+Worst Jacobian ratio : 1.51 on element 176
+Base mesh: 8764 nodes, 4254 elements
+Solver mesh: 8764 nodes, 4254 elements
+Job has finished successfully. Receiving results.
