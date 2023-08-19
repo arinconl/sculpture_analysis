@@ -1,52 +1,17 @@
 import pprint
 import math
 import numpy as np
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 
-def get_input_from_fusion():
+from note_helpers import *
+from from_fusion import *
+from to_lily import *
+
+DEBUG_BOOL = False
+
+def get_file_name():
   file_name = input("Enter the file name: ")
-  f = open(file_name, "r")
-
-  line = ""
-  start_line = 361
-  for _ in range(start_line):
-    line = f.readline()
-
-  data = []
-  data_row = []
-  curr = ""
-  jj = 0
-  kk = False
-  while (len(line) > 3):
-    for ch in line:
-      if ( (ch != ' ') and (ch != '\n') ):
-        curr += ch
-        if (kk == False):
-          kk = True
-      elif (kk):
-        if (jj == 0):
-          data_row.append(int(curr))
-        else:
-          data_row.append(float(curr))
-        jj += 1
-
-        curr = ""
-        kk = False
-
-    data.append(data_row)
-    data_row = []
-    jj = 0
-
-    # Get next line and loop
-    line = f.readline()
-
-  return data
-
-def show_fusion_data(fusion):
-  print("[")
-  for ii in range(len(fusion)):
-    print(fusion[ii])
-  print("]")
+  return file_name
 
 def get_rad_column(fusion):
   rads = []
@@ -108,6 +73,8 @@ def find_min_mode(freqs):
   else:
     return min(modes2.keys())
 
+
+
 class Note:
   
   # Private Vars
@@ -115,7 +82,9 @@ class Note:
   EPS = 0.1
   # This is an approximation for the analytical assistant
   #  (still need to mathematically evaulate a better ver.)
-  f_fac = 39.5
+  # f_fac = 39.5
+  # Experimentally obtained factor
+  f_fac = 39.478843774402250
 
   # Constructor
   def __init__(self, frequency = 0, mode = 0):
@@ -138,6 +107,8 @@ class Note:
       return rad
 
     def f2m(frequency):
+      # print("12 * math.log2( " + str(frequency) + "/440 ) + 69")
+      # print(frequency / 440)
       return ( 12*math.log2(frequency/440) + 69 )
 
     def m2f(midi):
@@ -297,8 +268,34 @@ class Note:
 
     return harm_notes
 
+  def get_lily(self, mode=0):
+
+    r = ""
+
+    temp1 = self.note
+    if (len(temp1) > 1):
+      r += temp1[0].lower() + "es"
+    else:
+      r += temp1.lower()
+    
+    temp2 = self.octv
+    if (temp2 >= 4):
+      r += (temp2 - 3)*"'"
+    else:
+      r += (3 - temp2)*","
+
+    if mode:
+      r += str(mode)
+
+    temp3 = int(self.cent)
+    if (temp3 > 0):
+      r += "^\\markup { " + str(round(self.cent)) + " }"
+    elif (temp3 < 0):
+      r += "_\\markup { " + str(round(self.cent)) + " }"
+    
+    return r
+
   def __str__(self):
-    # TODO: lilypond export
     return self.notation()
 
   def __repr__(self):
@@ -314,14 +311,33 @@ def main():
   tol = 1/tol_fac
 
   if (asking_for_input):
-    f_data = get_input_from_fusion()
+
+    f_data = extract_from_collection()
+    rads = get_data_rads(f_data)
+
+    """
+    f_name = get_file_name()
+    # f_data = get_input_from_fusion(f_name)
+    f_data = read_fusion_file(f_name)
     rads = get_rad_column(f_data)
+    """
+
+    print("There are " + str(len(rads)) + " potential notes!\n")
 
     notes = []
+
+    # print(rads)
+    # rads = rads[3:]
+    # print(rads)
+
     for r in rads:
-      notes.append(Note(r))
+      # print("looking at " + str(r))
+      if r is not 0:
+        notes.append(Note(r))
 
   else: #testing
+
+    f_name = "Test"
 
     fr = [
       220,
@@ -329,7 +345,7 @@ def main():
       440,
       550,
       660,
-      700, # this one is being counted when it shouldn't
+      700,
       770,
       880
     ]
@@ -337,29 +353,43 @@ def main():
     for f in fr:
       notes.append(Note(f, 1))
 
+  notes = extract_notes_in_range(notes)
+
+  print("There are " + str(len(notes)) + " \"audible\" notes!\n")
+
+  # """
+  for n in notes:
+    n.get_all()
+    print()
+  # """
+
   scale_harmonics = get_all_scale_harmonics(notes, tol)
   # print("Checking for commons:")
-  # !TODO: fix this one
   value_harmonics = get_all_value_harmonics(notes, tol)
+  # !TODO: fix this one
   # print("\nChecking for stricts:")
   reltv_harmonics = get_all_value_harmonics(notes, tol, 1)
 
   print("Harmonics by octave:")
   pp.pprint(scale_harmonics)
   print()
-  print("Harmonics by (common) multiples:")
-  pp.pprint(value_harmonics)
-  print()
-  print("Harmonics by (strict) multiples:")
-  pp.pprint(reltv_harmonics)
+  # print("Harmonics by (common) multiples:")
+  # pp.pprint(value_harmonics)
+  # print()
+  # print("Harmonics by (strict) multiples:")
+  # pp.pprint(reltv_harmonics)
+
+  m = extract_midi_values(notes)
+  compare_with_pd(m)
   
   # reltv_harmonics = get_all_reltv_harmonics(notes, tol)
   # pp.pprint(reltv_harmonics)
 
+  """
   plotput = {}
   for k,v in scale_harmonics.items():
     plotput[k.notation()] = len(v)
-  f = plt.figure(1)
+  _ = plt.figure(1)
   plt.bar(list(plotput.keys()), plotput.values(), color='g')
   plt.xticks(rotation='vertical')
   plt.xlabel('Note in notation')
@@ -390,8 +420,28 @@ def main():
   plt.ylabel('Harmonizing Notes (#)')
   # plt.title("Harmonic by Series")
   plt.title("Harmonics by (strict) multiples:")
+  """
 
-  plt.show()
+  print()
+  print("Attempting to generate lily file.. ", end="   ")
+  # for n in notes:
+  #   print(n.get_lily())
+
+  if not DEBUG_BOOL:
+    f = open("output.ly", "w")
+    f.write(generate_lily_content("Results", notes, scale_harmonics, value_harmonics, reltv_harmonics))
+    f.close()
+
+    import subprocess
+    subprocess.run(["lilypond", "--silent", "output.ly"])
+
+    print("..lily file generated!")
+  else:
+    print("..but in DEBUG mode.")
+
+  """
+  # plt.show()
+  """
 
 
 if __name__ == '__main__':
